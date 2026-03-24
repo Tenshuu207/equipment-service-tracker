@@ -1,0 +1,83 @@
+version: "3.9"
+
+# =============================================================================
+# Crown Service Equipment Tracker
+# Services: app (Next.js), db (PostgreSQL), db-init (one-shot migration runner)
+# =============================================================================
+
+services:
+
+  # ── PostgreSQL ──────────────────────────────────────────────────────────────
+  db:
+    image: postgres:16-alpine
+    container_name: crown_db
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER:     ${POSTGRES_USER:-crown}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-crownpass}
+      POSTGRES_DB:       ${POSTGRES_DB:-crown_tracker}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"         # expose for pgAdmin / DBeaver access on your LAN
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-crown} -d ${POSTGRES_DB:-crown_tracker}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # ── DB Migration (runs once, exits) ─────────────────────────────────────────
+  db-init:
+    image: postgres:16-alpine
+    container_name: crown_db_init
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      PGPASSWORD: ${POSTGRES_PASSWORD:-crownpass}
+    volumes:
+      - ./scripts:/scripts:ro
+    entrypoint: >
+      sh -c "
+        echo 'Running schema migration...' &&
+        psql -h db -U ${POSTGRES_USER:-crown} -d ${POSTGRES_DB:-crown_tracker} -f /scripts/001-init.sql &&
+        echo 'Running seed data...' &&
+        psql -h db -U ${POSTGRES_USER:-crown} -d ${POSTGRES_DB:-crown_tracker} -f /scripts/002-seed.sql &&
+        echo 'Database ready.'
+      "
+    restart: "no"
+
+  # ── Next.js App ──────────────────────────────────────────────────────────────
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        NEXT_PUBLIC_USE_DB: "true"
+    container_name: crown_app
+    restart: unless-stopped
+    depends_on:
+      db:
+        condition: service_healthy
+      db-init:
+        condition: service_completed_successfully
+    environment:
+      DATABASE_URL: postgres://${POSTGRES_USER:-crown}:${POSTGRES_PASSWORD:-crownpass}@db:5432/${POSTGRES_DB:-crown_tracker}
+      DATABASE_SSL:  "false"
+      NODE_ENV:      production
+      PORT:          "3000"
+    volumes:
+      # Mount a local folder so you can drop .msg/.pdf/.eml files into it
+      # from your Windows share — the future file-watcher picks them up from here.
+      - ./imports:/app/imports
+    ports:
+      - "${APP_PORT:-3000}:3000"
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3000/api/db/stats || exit 1"]
+      interval: 15s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  pgdata:
+    driver: local

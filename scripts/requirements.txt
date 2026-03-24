@@ -1,0 +1,18 @@
+# Crown Service Equipment Tracking — Python Dependencies
+# Install with: pip install -r requirements.txt
+
+# PDF text extraction
+pdfplumber>=0.11.0
+
+# Outlook .msg file parsing
+extract-msg>=0.48.0
+
+# Flexible date string parsing
+python-dateutil>=2.9.0
+
+# FastAPI + server (Phase 3)
+fastapi>=0.111.0
+uvicorn[standard]>=0.30.0
+
+# Optional: Streamlit for quick internal dashboard (Phase 3 alternative)
+# streamlit>=1.36.0
