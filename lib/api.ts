@@ -177,9 +177,12 @@ export function isMockMode(): boolean {
  */
 async function apiFetch<T>(path: string, mock: T): Promise<T> {
   if (!USE_DB) return mock
-  // Calls the /api/db/* Next.js route — always a relative URL
-  const res = await fetch(path)
-  if (!res.ok) throw new Error(`API error ${res.status} on ${path}`)
+
+  const base = API_BASE_URL.replace(/\/$/, "")
+  const url = `${base}${path}`
+
+  const res = await fetch(url)
+  if (!res.ok) throw new Error(`API error ${res.status} on ${url}`)
   return res.json()
 }
 
@@ -188,7 +191,7 @@ async function apiFetch<T>(path: string, mock: T): Promise<T> {
 // ---------------------------------------------------------------------------
 
 export async function fetchStats(): Promise<DashboardStats> {
-  return apiFetch<DashboardStats>("/api/db/stats", store.getStats())
+  return apiFetch<DashboardStats>("/api/stats", store.getStats())
 }
 
 export async function fetchWorkOrders(params?: {
@@ -227,12 +230,12 @@ export async function fetchIssueFrequency(params?: { date_from?: string; date_to
 
 export async function fetchProblemAssets(): Promise<ProblemAsset[]> {
   if (!USE_DB) return store.getProblemAssets()
-  const data = await apiFetch<{ results: ProblemAsset[] }>("/api/db/problem-assets", { results: [] })
+  const data = await apiFetch<{ results: ProblemAsset[] }>("/api/problem-assets", { results: [] })
   return data.results
 }
 
 export async function fetchImportRuns(): Promise<ImportRun[]> {
-  return apiFetch<ImportRun[]>("/api/db/import-runs", store.getImportRuns())
+  return apiFetch<ImportRun[]>("/api/import-runs", store.getImportRuns())
 }
 
 export async function fetchTechnicians(): Promise<string[]> {
@@ -240,7 +243,7 @@ export async function fetchTechnicians(): Promise<string[]> {
     const techSet = new Set(store.getWorkOrders().map(w => w.technician).filter(Boolean) as string[])
     return Array.from(techSet).sort()
   }
-  const data = await apiFetch<{ technicians: string[] }>("/api/db/technicians", { technicians: [] })
+  const data = await apiFetch<{ technicians: string[] }>("/api/technicians", { technicians: [] })
   return data.technicians
 }
 
