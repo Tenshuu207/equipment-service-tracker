@@ -449,6 +449,10 @@ def _parse_crown_service_text(text: str) -> ParsedDocument:
 
     detected_issues = _detect_issues(combined)
 
+    # Do not allow PM tagging on non-PM work orders
+    if work_order_type != WorkOrderType.PM and "planned_maintenance" in detected_issues:
+        detected_issues = [i for i in detected_issues if i != "planned_maintenance"]
+
     # Problem flag: safety mentions, "down", recurring language
     problem_note_flag = _detect_problem_flag(combined)
 

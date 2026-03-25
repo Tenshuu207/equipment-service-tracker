@@ -203,11 +203,16 @@ export async function fetchWorkOrders(params?: {
     if (params?.date_from)  results = results.filter(w => w.date_completed && w.date_completed >= params.date_from!)
     if (params?.date_to)    results = results.filter(w => w.date_completed && w.date_completed <= params.date_to!)
     if (params?.issue_code) results = results.filter(w => w.issues?.includes(params.issue_code!))
-    if (params?.serial)     results = results.filter(w => w.serial_number === params.serial)
+    if (params?.serial)     results = results.filter(w => w.serial_number?.includes(params.serial!))
     return results
   }
-  const qs = new URLSearchParams(params as Record<string, string>).toString()
-  const data = await apiFetch<{ results: WorkOrder[] }>(`/api/work-orders?${qs}`, { results: [] })
+
+  const cleanParams = Object.fromEntries(
+    Object.entries(params || {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
+  )
+  const qs = new URLSearchParams(cleanParams as Record<string, string>).toString()
+  const path = qs ? `/api/work-orders?${qs}` : "/api/work-orders"
+  const data = await apiFetch<{ results: WorkOrder[] }>(path, { results: store.getWorkOrders() })
   return data.results
 }
 
@@ -228,8 +233,13 @@ export async function fetchAllAssets(query = ""): Promise<AssetSummary[]> {
 
 export async function fetchIssueFrequency(params?: { date_from?: string; date_to?: string }): Promise<IssueFrequency[]> {
   if (!USE_DB) return store.getIssueFrequency()
-  const qs = new URLSearchParams(params as Record<string, string>).toString()
-  const data = await apiFetch<{ results: IssueFrequency[] }>(`/api/issues/frequency?${qs}`, { results: [] })
+
+  const cleanParams = Object.fromEntries(
+    Object.entries(params || {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
+  )
+  const qs = new URLSearchParams(cleanParams as Record<string, string>).toString()
+  const path = qs ? `/api/issues/frequency?${qs}` : "/api/issues/frequency"
+  const data = await apiFetch<{ results: IssueFrequency[] }>(path, { results: store.getIssueFrequency() })
   return data.results
 }
 
@@ -270,8 +280,12 @@ export async function deleteIngestionSource(id: number): Promise<void> {
 }
 
 export async function fetchImportFiles(params?: { run_id?: number; status?: string; limit?: number }): Promise<ImportFile[]> {
-  const qs = new URLSearchParams(params as Record<string, string>).toString()
-  const data = await apiFetch<{ results: ImportFile[] }>(`/api/import-files?${qs}`, { results: store.getImportFiles() })
+  const cleanParams = Object.fromEntries(
+    Object.entries(params || {}).filter(([, v]) => v !== undefined && v !== null && v !== "")
+  )
+  const qs = new URLSearchParams(cleanParams as Record<string, string>).toString()
+  const path = qs ? `/api/import-files?${qs}` : "/api/import-files"
+  const data = await apiFetch<{ results: ImportFile[] }>(path, { results: store.getImportFiles() })
   return data.results
 }
 
@@ -280,20 +294,21 @@ export async function fetchReviewQueue(): Promise<ReviewRecord[]> {
 }
 
 export async function submitReview(
-  work_order_no: string,
-  updates: Partial<ReviewRecord> & { reviewed_by?: string }
+  _work_order_no: string,
+  _updates: Partial<ReviewRecord> & { reviewed_by?: string }
 ): Promise<void> {
-  if (!USE_DB) { store.submitReview(work_order_no, updates); return }
-  await fetch("/api/db/review-queue", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ ...updates, work_order_no, action: "approve" }) })
+  throw new Error("Review submission is not wired to FastAPI yet.")
 }
 
 export async function reprocessFile(_import_file_id: number): Promise<void> {
   // Backend-only — no-op in demo mode
 }
 
-export async function dismissReview(work_order_no: string, reason: string): Promise<void> {
-  if (!USE_DB) { store.dismissReview(work_order_no, reason); return }
-  await fetch("/api/db/review-queue", { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ work_order_no, review_notes: reason, action: "dismiss" }) })
+export async function dismissReview(
+  _work_order_no: string,
+  _reason: string
+): Promise<void> {
+  throw new Error("Review dismissal is not wired to FastAPI yet.")
 }
 
 export async function fetchAssetDetail(serial_number: string): Promise<AssetDetail | null> {
