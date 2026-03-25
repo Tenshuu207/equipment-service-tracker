@@ -46,7 +46,7 @@ SCHEMA_PATH = Path(__file__).parent / "schema.sql"
 @contextmanager
 def get_connection(db_path: Path) -> Generator[sqlite3.Connection, None, None]:
     """Provide a thread-safe connection with WAL mode enabled."""
-    conn = sqlite3.connect(str(db_path), check_same_thread=False)
+    conn = sqlite3.connect(str(db_path), check_same_thread=False, timeout=30)
     conn.execute("PRAGMA journal_mode=WAL;")
     conn.execute("PRAGMA foreign_keys=ON;")
     conn.row_factory = sqlite3.Row
@@ -132,19 +132,30 @@ class Database:
         return dict(row) if row else None
 
     def search_assets(self, query: str, limit: int = 50) -> list[dict]:
-        """Search by serial_number or equipment_reference (partial match)."""
-        pattern = f"%{query}%"
+        """Search by serial_number or equipment_reference (partial match). Empty query returns recent/all assets."""
+        q = (query or "").strip()
         with get_connection(self.db_path) as conn:
-            rows = conn.execute(
-                """
-                SELECT * FROM v_asset_service_summary
-                WHERE serial_number LIKE ?
-                   OR equipment_reference LIKE ?
-                ORDER BY last_service_date DESC
-                LIMIT ?
-                """,
-                (pattern, pattern, limit),
-            ).fetchall()
+            if not q:
+                rows = conn.execute(
+                    """
+                    SELECT * FROM v_asset_service_summary
+                    ORDER BY last_service_date DESC
+                    LIMIT ?
+                    """,
+                    (limit,),
+                ).fetchall()
+            else:
+                pattern = f"%{q}%"
+                rows = conn.execute(
+                    """
+                    SELECT * FROM v_asset_service_summary
+                    WHERE serial_number LIKE ?
+                       OR equipment_reference LIKE ?
+                    ORDER BY last_service_date DESC
+                    LIMIT ?
+                    """,
+                    (pattern, pattern, limit),
+                ).fetchall()
         return [dict(r) for r in rows]
 
     # ------------------------------------------------------------------

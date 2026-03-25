@@ -3,33 +3,34 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev": "next dev",
+    "dev": "next dev --webpack",
     "build": "next build",
     "start": "next start",
     "lint": "next lint"
   },
   "dependencies": {
-    "react": "latest",
-    "react-dom": "^19.0.0",
-    "next": "latest",
     "@radix-ui/react-slot": "^1.1.0",
+    "@tailwindcss/postcss": "^4.0.0",
+    "@vercel/analytics": "latest",
+    "autoprefixer": "^10.4.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.0",
-    "tailwind-merge": "^2.3.0",
-    "tailwindcss": "^4.0.0",
-    "@tailwindcss/postcss": "^4.0.0",
-    "autoprefixer": "^10.4.0",
-    "@vercel/analytics": "latest",
     "lucide-react": "^0.400.0",
+    "next": "latest",
     "pdf-parse": "latest",
-    "pg": "latest"
+    "pg": "latest",
+    "react": "latest",
+    "react-dom": "^19.0.0",
+    "recharts": "^3.8.0",
+    "tailwind-merge": "^2.3.0",
+    "tailwindcss": "^4.0.0"
   },
   "devDependencies": {
-    "typescript": "^5.0.0",
     "@types/node": "^20.0.0",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "eslint": "^8.0.0",
-    "eslint-config-next": "^15.0.0"
+    "eslint-config-next": "^15.0.0",
+    "typescript": "^5.0.0"
   }
 }

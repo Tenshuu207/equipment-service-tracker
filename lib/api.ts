@@ -207,7 +207,7 @@ export async function fetchWorkOrders(params?: {
     return results
   }
   const qs = new URLSearchParams(params as Record<string, string>).toString()
-  const data = await apiFetch<{ results: WorkOrder[] }>(`/api/db/work-orders?${qs}`, { results: [] })
+  const data = await apiFetch<{ results: WorkOrder[] }>(`/api/work-orders?${qs}`, { results: [] })
   return data.results
 }
 
@@ -216,15 +216,20 @@ export async function fetchAssets(q: string): Promise<AssetSummary[]> {
   return data.results
 }
 
-export async function fetchAllAssets(): Promise<AssetSummary[]> {
-  const data = await apiFetch<{ results: AssetSummary[] }>("/api/db/assets?q=", { results: store.getAssets() })
+export async function fetchAllAssets(query = ""): Promise<AssetSummary[]> {
+  if (!USE_DB) return store.getAssets()
+
+  const data = await apiFetch<{ results: AssetSummary[] }>(
+    `/api/assets/search?q=${encodeURIComponent(query)}`,
+    { results: store.getAssets() }
+  )
   return data.results
 }
 
 export async function fetchIssueFrequency(params?: { date_from?: string; date_to?: string }): Promise<IssueFrequency[]> {
   if (!USE_DB) return store.getIssueFrequency()
   const qs = new URLSearchParams(params as Record<string, string>).toString()
-  const data = await apiFetch<{ results: IssueFrequency[] }>(`/api/db/issues/frequency?${qs}`, { results: [] })
+  const data = await apiFetch<{ results: IssueFrequency[] }>(`/api/issues/frequency?${qs}`, { results: [] })
   return data.results
 }
 
@@ -248,20 +253,15 @@ export async function fetchTechnicians(): Promise<string[]> {
 }
 
 export async function fetchIngestionSources(): Promise<IngestionSource[]> {
-  if (!USE_DB) return store.getIngestionSources()
-  const data = await apiFetch<{ results: IngestionSource[] }>("/api/db/ingestion-sources", { results: [] })
-  return data.results
+  return []
 }
 
-export async function createIngestionSource(payload: Omit<IngestionSource, "id" | "created_at" | "updated_at">): Promise<IngestionSource> {
-  if (!USE_DB) return store.addIngestionSource(payload)
-  const res = await fetch("/api/db/ingestion-sources", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
-  return res.json()
+export async function createIngestionSource(_payload: Partial<IngestionSource>): Promise<IngestionSource> {
+  throw new Error("Ingestion source management is not wired to FastAPI yet.")
 }
 
-export async function updateIngestionSource(id: number, payload: Partial<IngestionSource>): Promise<void> {
-  if (!USE_DB) { store.updateIngestionSource(id, payload); return }
-  await fetch(`/api/db/ingestion-sources/${id}`, { method: "PATCH", headers: { "Content-Type": "application/json" }, body: JSON.stringify(payload) })
+export async function updateIngestionSource(_id: number, _payload: Partial<IngestionSource>): Promise<void> {
+  throw new Error("Ingestion source management is not wired to FastAPI yet.")
 }
 
 export async function deleteIngestionSource(id: number): Promise<void> {
@@ -271,13 +271,12 @@ export async function deleteIngestionSource(id: number): Promise<void> {
 
 export async function fetchImportFiles(params?: { run_id?: number; status?: string; limit?: number }): Promise<ImportFile[]> {
   const qs = new URLSearchParams(params as Record<string, string>).toString()
-  const data = await apiFetch<{ results: ImportFile[] }>(`/api/db/import-files?${qs}`, { results: store.getImportFiles() })
+  const data = await apiFetch<{ results: ImportFile[] }>(`/api/import-files?${qs}`, { results: store.getImportFiles() })
   return data.results
 }
 
 export async function fetchReviewQueue(): Promise<ReviewRecord[]> {
-  const data = await apiFetch<{ results: ReviewRecord[] }>("/api/db/review-queue", { results: store.getReviewQueue() })
-  return data.results
+  return []
 }
 
 export async function submitReview(
@@ -314,7 +313,7 @@ export async function fetchWorkOrdersForAsset(serial_number: string): Promise<Wo
       .filter(w => w.serial_number === serial_number)
       .map(w => ({ ...w, import_status: "processed" as ImportStatus, reviewed_by: null, reviewed_at: null, review_notes: null, parser_confidence: null, duplicate_hash_warning: 0 }))
   }
-  const data = await apiFetch<{ results: WorkOrderDetail[] }>(`/api/db/work-orders?serial=${encodeURIComponent(serial_number)}`, { results: [] })
+  const data = await apiFetch<{ results: WorkOrderDetail[] }>(`/api/work-orders?serial=${encodeURIComponent(serial_number)}`, { results: [] })
   return data.results
 }
 

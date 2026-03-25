@@ -40,7 +40,14 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["http://localhost:3000", "http://127.0.0.1:3000"],
+    allow_origins=[
+        "http://localhost:3000",
+        "http://127.0.0.1:3000",
+        "http://localhost:3002",
+        "http://127.0.0.1:3002",
+        "http://192.168.18.158:3000",
+        "http://192.168.18.158:3002",
+    ],
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -74,14 +81,26 @@ def get_import_runs(limit: int = Query(20, ge=1, le=100)):
     db = get_db()
     return db.get_recent_import_runs(limit=limit)
 
+@app.get("/api/import-files")
+def get_import_files(
+    run_id: Optional[int] = Query(None),
+    limit: int = Query(100, ge=1, le=500),
+):
+    """Recent import files, optionally filtered by import run ID."""
+    db = get_db()
+    if run_id is not None:
+        return {"results": db.get_import_files_for_run(run_id), "count": len(db.get_import_files_for_run(run_id))}
+    rows = db.get_recent_import_files(limit=limit)
+    return {"results": rows, "count": len(rows)}
+
 
 # ---------------------------------------------------------------------------
 # Asset Endpoints
 # ---------------------------------------------------------------------------
 
 @app.get("/api/assets/search")
-def search_assets(q: str = Query(..., min_length=1), limit: int = Query(50, ge=1, le=200)):
-    """Search assets by serial number or equipment reference."""
+def search_assets(q: str = Query("", min_length=0), limit: int = Query(50, ge=1, le=200)):
+    """Search assets by serial number or equipment reference. Empty query returns recent/all assets."""
     db = get_db()
     results = db.search_assets(query=q, limit=limit)
     return {"results": results, "count": len(results)}
