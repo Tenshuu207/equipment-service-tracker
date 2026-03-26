@@ -36,7 +36,7 @@ Edit `.env` if you want to change the Postgres password or the host port.
 docker compose up --build
 ```
 
-On first run `db-init` applies the schema and seeds the six real Dennis Food Service work orders, then exits. The app container waits for `db-init` to complete before starting.
+On first run `db-init` applies the schema and seeds six anonymized demo work orders, then exits. The app container waits for `db-init` to complete before starting.
 
 ### 4. Open the app
 

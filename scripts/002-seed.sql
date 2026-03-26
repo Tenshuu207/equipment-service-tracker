@@ -1,12 +1,12 @@
 -- =============================================================================
 -- Crown Service Equipment Tracker — Seed Data
--- Real Dennis Food Service records — no fabrication.
+-- Demo records (anonymized) for local development.
 -- Safe to re-run: uses ON CONFLICT DO NOTHING / DO UPDATE.
 -- =============================================================================
 
 -- Customer
 INSERT INTO customers (name, customer_no, city, state)
-VALUES ('Dennis Food Service', '132397', 'Hampden', 'ME')
+VALUES ('Sample Warehouse Co', '000001', 'Sampletown', 'ME')
 ON CONFLICT (name) DO NOTHING;
 
 -- Assets
@@ -21,7 +21,7 @@ FROM (VALUES
   ('10183427', NULL,  'WP3035-45'),
   ('1A403990', NULL,  'RM6025-45')
 ) AS v(s, ref, mdl)
-JOIN customers c ON c.name = 'Dennis Food Service'
+JOIN customers c ON c.name = 'Sample Warehouse Co'
 ON CONFLICT (serial_number) DO NOTHING;
 
 -- Ingestion source
@@ -51,7 +51,7 @@ INSERT INTO work_orders (
   problem_note_flag, issues, import_status, parser_confidence, source_file_name, imported_at
 ) VALUES
 (
-  'W138240', 'W', '2025-12-05', 'Justin Cote',
+  'W138240', 'W', '2025-12-05', 'Tech A',
   '6A286154', '#27', 'PE4500-60',
   5394, 3.0,
   'Prep lift truck for scrap',
@@ -60,7 +60,7 @@ INSERT INTO work_orders (
   0, 'battery_electrical,decommission,load_backrest', 'processed', 0.95, 'W138240.pdf', '2025-12-17 08:15:00+00'
 ),
 (
-  'W138107', 'W', '2025-12-04', 'Justin Cote',
+  'W138107', 'W', '2025-12-04', 'Tech A',
   '6A293437', '#42', 'PE4500-60',
   10431, 4.0,
   'Pallet jack #42 — operator complained of throttle issues, sometimes no power, inconsistent throttle control',
@@ -69,7 +69,7 @@ INSERT INTO work_orders (
   1, 'throttle_controls', 'processed', 0.92, 'W138107.pdf', '2025-12-17 08:15:02+00'
 ),
 (
-  'W137822', 'W', '2025-12-17', 'Justin Cote',
+  'W137822', 'W', '2025-12-17', 'Tech A',
   '1A460250', '#8', 'SP3520-30',
   18457, NULL,
   'Remove and replace platform mat',
@@ -78,7 +78,7 @@ INSERT INTO work_orders (
   1, 'floor_platform', 'processed', 0.88, 'W137822.pdf', '2025-12-17 08:15:04+00'
 ),
 (
-  'W135041', 'W', '2025-09-04', 'Andrew Cotter',
+  'W135041', 'W', '2025-09-04', 'Tech B',
   '1A384086', '#6', 'SP3510-30',
   6895, 1.0,
   'Aisle guide wheels and load wheels',
@@ -87,7 +87,7 @@ INSERT INTO work_orders (
   0, 'guide_wheel,load_wheel', 'processed', 0.91, 'W135041.pdf', '2025-09-10 07:30:00+00'
 ),
 (
-  'PM118795', 'PM', '2025-05-01', 'Andrew Cotter',
+  'PM118795', 'PM', '2025-05-01', 'Tech B',
   '10183427', NULL, 'WP3035-45',
   2193, 0.93,
   NULL,
@@ -96,7 +96,7 @@ INSERT INTO work_orders (
   0, 'planned_maintenance', 'processed', 0.90, 'PM118795.pdf', '2025-05-02 06:00:00+00'
 ),
 (
-  'PM118779', 'PM', '2025-05-01', 'Andrew Cotter',
+  'PM118779', 'PM', '2025-05-01', 'Tech B',
   '6A276850', NULL, 'PE4500-80',
   6845, 1.05,
   NULL,
