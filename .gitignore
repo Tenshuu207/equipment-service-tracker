@@ -37,3 +37,7 @@ node_modules/
 .next/
 build/
 dist/
+
+# Local import/test artifacts (may include sensitive customer data)
+imports/
+test-import/

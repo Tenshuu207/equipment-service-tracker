@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
+  allowedDevOrigins: ["192.168.18.158"],
   // Required for Docker: produces a self-contained server.js + node_modules snapshot
   output: "standalone",
 
